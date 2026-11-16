@@ -8,6 +8,7 @@ const serviceNotice = document.querySelector("#service-notice");
 const serviceNoticeTitle = document.querySelector("#service-notice-title");
 const serviceNoticeMessage = document.querySelector("#service-notice-message");
 const localBuilderLink = document.querySelector("#local-builder-link");
+const deployBuilderLink = document.querySelector("#deploy-builder-link");
 const progressPanel = document.querySelector("#build-progress");
 const progressTitle = document.querySelector("#progress-title");
 const progressMessage = document.querySelector("#progress-message");
@@ -42,6 +43,11 @@ let cropOffsetY = 0;
 let dragPoint = null;
 const configurableInputs = [websiteInput, appNameInput, notifyPostsInput, feedUrlInput, iconFileInput, iconZoomInput, removeIconButton, bloggerFeedButton];
 const iconDensities = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };
+const API_BASE = typeof window.WEB2APP_API_BASE === "string" ? window.WEB2APP_API_BASE.replace(/\/$/, "") : "";
+
+function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
 
 async function checkBuilderService() {
   if (window.location.protocol === "file:") {
@@ -49,18 +55,38 @@ async function checkBuilderService() {
     serviceNoticeTitle.textContent = "Open the builder server to create an APK";
     serviceNoticeMessage.textContent = "This local file preview is styled, but APK builds need the server. Start it with Docker Compose, then use the link below.";
     localBuilderLink.hidden = false;
+    deployBuilderLink.hidden = true;
     buildButton.disabled = true;
     buildButton.querySelector(".button-label").textContent = "Open the builder server to build";
     return;
   }
 
   try {
-    const response = await fetch("/api/health", { cache: "no-store" });
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    let response;
+    try {
+      response = await fetch(apiUrl("/api/health"), { cache: "no-store", signal: controller.signal });
+    } finally {
+      window.clearTimeout(timeout);
+    }
     if (!response.ok) throw new Error("The builder server did not respond.");
+    serviceNotice.hidden = true;
+    localBuilderLink.hidden = true;
+    deployBuilderLink.hidden = true;
+    buildButton.disabled = false;
   } catch {
     serviceNotice.hidden = false;
-    serviceNoticeTitle.textContent = "The APK builder server is offline";
-    serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
+    localBuilderLink.hidden = true;
+    if (window.location.hostname.endsWith(".github.io")) {
+      serviceNoticeTitle.textContent = "One quick setup unlocks APK builds";
+      serviceNoticeMessage.textContent = "GitHub Pages hosts this page, while APK builds need a separate server. Choose Set up the build server, sign in to Render, review the service, and approve its current $25/month plan. When deployment finishes, refresh this page.";
+      deployBuilderLink.hidden = false;
+    } else {
+      serviceNoticeTitle.textContent = "The APK builder server is offline";
+      serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
+      deployBuilderLink.hidden = true;
+    }
     buildButton.disabled = true;
   }
 }
@@ -344,7 +370,7 @@ async function pollJob(jobId) {
     await new Promise((resolve) => window.setTimeout(resolve, 1600));
     let job;
     try {
-      const response = await fetch(`/api/build/${encodeURIComponent(jobId)}`, { cache: "no-store" });
+      const response = await fetch(apiUrl(`/api/build/${encodeURIComponent(jobId)}`), { cache: "no-store" });
       job = await readResponse(response);
     } catch (error) {
       if (error.status === 404) throw error;
@@ -358,7 +384,7 @@ async function pollJob(jobId) {
       progressPanel.hidden = true;
       resultPanel.hidden = false;
       resultTitle.textContent = `${job.appName} is ready`;
-      downloadLink.href = job.downloadUrl;
+      downloadLink.href = apiUrl(job.downloadUrl);
       downloadLink.setAttribute("download", `${job.appName.replace(/[^a-z0-9]+/gi, "-")}.apk`);
       setBusy(false);
       form.hidden = true;
@@ -411,7 +437,7 @@ form.addEventListener("submit", async (event) => {
   describeStatus("queued", "Your build is being added to the queue.");
 
   try {
-    const response = await fetch("/api/build", {
+    const response = await fetch(apiUrl("/api/build"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

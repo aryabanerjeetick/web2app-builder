@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const STATIC_FILES = new Set(["index.html", "styles.css", "app.js", "favicon.svg"]);
+const STATIC_FILES = new Set(["index.html", "styles.css", "app.js", "api-config.js", "favicon.svg"]);
 const TEMPLATE_ROOT = path.join(ROOT, "android-template");
 const DATA_ROOT = path.resolve(process.env.DATA_DIR || path.join(ROOT, "data"));
 const ARTIFACT_ROOT = path.join(DATA_ROOT, "artifacts");
@@ -22,6 +22,19 @@ const BUILD_TIMEOUT_MS = 8 * 60 * 1000;
 const MAX_BUILD_REQUEST_BYTES = 3 * 1024 * 1024;
 const ARTIFACT_TTL_MS = 6 * 60 * 60 * 1000;
 const BUILD_COMMAND = process.env.GRADLE_COMMAND || "gradle";
+const ALLOWED_CORS_ORIGINS = new Set(
+  (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => {
+      const origin = new URL(value);
+      if (!["http:", "https:"].includes(origin.protocol) || origin.origin !== value) {
+        throw new Error(`CORS_ORIGINS must contain only exact HTTP(S) origins: ${value}`);
+      }
+      return origin.origin;
+    }),
+);
 const jobs = new Map();
 const queue = [];
 const rateLimits = new Map();
@@ -71,6 +84,22 @@ function clientAddress(request) {
     }
   }
   return request.socket.remoteAddress || "unknown";
+}
+
+function serverOrigin(request) {
+  let protocol = "http:";
+  if (process.env.TRUST_PROXY === "1") {
+    const forwardedProtocol = request.headers["x-forwarded-proto"];
+    if (typeof forwardedProtocol === "string") {
+      const candidate = forwardedProtocol.split(",")[0].trim().toLowerCase();
+      if (candidate === "http" || candidate === "https") protocol = `${candidate}:`;
+    }
+  }
+  try {
+    return request.headers.host ? new URL(`${protocol}//${request.headers.host}`).origin : "";
+  } catch {
+    return "";
+  }
 }
 
 function checkRateLimit(request) {
@@ -449,6 +478,26 @@ async function handleRequest(request, response) {
   setSecurityHeaders(response);
   const requestUrl = new URL(request.url || "/", `http://${request.headers.host || "localhost"}`);
   const { pathname } = requestUrl;
+
+  if (pathname.startsWith("/api/")) {
+    const origin = request.headers.origin;
+    if (origin) {
+      response.setHeader("Vary", "Origin");
+      const sameOrigin = origin === serverOrigin(request);
+      if (!sameOrigin && !ALLOWED_CORS_ORIGINS.has(origin)) {
+        throw new HttpError(403, "This website is not allowed to use the builder API.");
+      }
+      response.setHeader("Access-Control-Allow-Origin", origin);
+      if (request.method === "OPTIONS") {
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setHeader("Access-Control-Max-Age", "86400");
+        response.writeHead(204);
+        response.end();
+        return;
+      }
+    }
+  }
 
   if (pathname === "/api/health" && request.method === "GET") {
     sendJson(response, 200, { ok: true, service: "web2app-builder" });
