@@ -9,7 +9,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const STATIC_FILES = new Set(["index.html", "styles.css", "app.js", "api-config.js", "favicon.svg"]);
+const STATIC_FILES = new Set(["index.html", "styles.css", "app.js", "favicon.svg"]);
 const TEMPLATE_ROOT = path.join(ROOT, "android-template");
 const DATA_ROOT = path.resolve(process.env.DATA_DIR || path.join(ROOT, "data"));
 const ARTIFACT_ROOT = path.join(DATA_ROOT, "artifacts");

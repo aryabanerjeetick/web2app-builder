@@ -25,7 +25,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY --chown=node:node package.json server.js ./
-COPY --chown=node:node index.html styles.css app.js api-config.js favicon.svg ./
+COPY --chown=node:node index.html styles.css app.js favicon.svg ./
 COPY --chown=node:node android-template ./android-template
 
 USER node

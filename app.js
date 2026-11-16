@@ -8,7 +8,6 @@ const serviceNotice = document.querySelector("#service-notice");
 const serviceNoticeTitle = document.querySelector("#service-notice-title");
 const serviceNoticeMessage = document.querySelector("#service-notice-message");
 const localBuilderLink = document.querySelector("#local-builder-link");
-const deployBuilderLink = document.querySelector("#deploy-builder-link");
 const progressPanel = document.querySelector("#build-progress");
 const progressTitle = document.querySelector("#progress-title");
 const progressMessage = document.querySelector("#progress-message");
@@ -55,7 +54,6 @@ async function checkBuilderService() {
     serviceNoticeTitle.textContent = "Open the builder server to create an APK";
     serviceNoticeMessage.textContent = "This local file preview is styled, but APK builds need the server. Start it with Docker Compose, then use the link below.";
     localBuilderLink.hidden = false;
-    deployBuilderLink.hidden = true;
     buildButton.disabled = true;
     buildButton.querySelector(".button-label").textContent = "Open the builder server to build";
     return;
@@ -73,19 +71,16 @@ async function checkBuilderService() {
     if (!response.ok) throw new Error("The builder server did not respond.");
     serviceNotice.hidden = true;
     localBuilderLink.hidden = true;
-    deployBuilderLink.hidden = true;
     buildButton.disabled = false;
   } catch {
     serviceNotice.hidden = false;
     localBuilderLink.hidden = true;
     if (window.location.hostname.endsWith(".github.io")) {
-      serviceNoticeTitle.textContent = "One quick setup unlocks APK builds";
-      serviceNoticeMessage.textContent = "GitHub Pages hosts this page, while APK builds need a separate server. Choose Set up the build server, sign in to Render, review the service, and approve its current $25/month plan. When deployment finishes, refresh this page.";
-      deployBuilderLink.hidden = false;
+      serviceNoticeTitle.textContent = "Online APK building is not connected yet";
+      serviceNoticeMessage.textContent = "This free GitHub Pages site can show the builder, but APK creation needs a separate build service. No paid service is running. The free online option requires a GitHub sign-in and public build requests.";
     } else {
       serviceNoticeTitle.textContent = "The APK builder server is offline";
       serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
-      deployBuilderLink.hidden = true;
     }
     buildButton.disabled = true;
   }
