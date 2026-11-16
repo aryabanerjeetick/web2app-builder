@@ -1,0 +1,13 @@
+services:
+  web2app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      DATA_DIR: /data
+      MAX_CONCURRENT_BUILDS: "1"
+      MAX_QUEUE_SIZE: "4"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

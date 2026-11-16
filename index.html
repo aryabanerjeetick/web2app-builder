@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f5fc">
+    <meta name="description" content="Turn a website into a downloadable Android app. Enter a URL, choose a name, and build your APK online.">
+    <title>Web2App — Your website, as an app</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="./index.html" aria-label="Web2App home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><rect x="2" y="2" width="28" height="28" rx="9" fill="currentColor"/><path d="M10 9.5h12M10 15.8h12M10 22.1h7" stroke="white" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </span>
+          <span>web<span class="brand-accent">2</span>app</span>
+        </a>
+        <div class="topbar-note"><span class="status-dot"></span> Built for Android</div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <div class="intro-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> YOUR WEBSITE, ONE STEP CLOSER</p>
+            <h1 id="page-title">Make your website<br><span>feel like an app.</span></h1>
+            <p class="intro-description">Paste a link. Pick a name. Get an Android app to download and share. No Android Studio, no coding.</p>
+          </div>
+          <div class="intro-stamp" aria-label="Three simple steps">
+            <span class="stamp-number">03</span>
+            <span>simple<br>steps</span>
+          </div>
+        </section>
+
+        <section class="builder-layout" aria-label="Create your app">
+          <div class="builder-card">
+            <div class="card-heading">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M10 13.5a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.72 1.72M14 10.5a4 4 0 0 0-5.66 0l-3 3A4 4 0 0 0 11 19.16l1.72-1.72" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div>
+                <p class="card-kicker">START YOUR BUILD</p>
+                <h2>Tell us about your website</h2>
+              </div>
+            </div>
+
+            <div class="service-notice" id="service-notice" role="status" hidden>
+              <span class="notice-mark" aria-hidden="true">i</span>
+              <div>
+                <strong id="service-notice-title">Builder server is required</strong>
+                <p id="service-notice-message"></p>
+                <a id="local-builder-link" href="http://localhost:3000/" hidden>Open the running builder <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+
+            <form id="build-form" novalidate>
+              <label class="field-label" for="website-url">Website address</label>
+              <div class="input-wrap url-wrap">
+                <span class="input-prefix" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 10h13M10 3c1.6 1.8 2.4 4.1 2.4 7s-.8 5.2-2.4 7c-1.6-1.8-2.4-4.1-2.4-7s.8-5.2 2.4-7Z" stroke="currentColor" stroke-width="1.3"/></svg>
+                </span>
+                <input id="website-url" name="website" type="url" inputmode="url" autocomplete="url" placeholder="https://yourwebsite.com" maxlength="2048" required aria-describedby="url-hint form-error">
+                <span class="url-secure" aria-label="Secure HTTPS websites only">
+                  <svg viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.7" stroke="currentColor" stroke-width="1.4"/><path d="M5.2 7V4.8a2.8 2.8 0 0 1 5.6 0V7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                </span>
+              </div>
+              <p class="field-hint" id="url-hint">Use a public website that starts with <strong>https://</strong></p>
+
+              <label class="field-label app-name-label" for="app-name">App name</label>
+              <div class="input-wrap name-wrap">
+                <span class="name-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none"><rect x="4.5" y="2.3" width="11" height="15.4" rx="2.3" stroke="currentColor" stroke-width="1.5"/><path d="M8 4.7h4M8.8 15.1h2.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                </span>
+                <input id="app-name" name="appName" type="text" autocomplete="off" placeholder="e.g. Northstar Shop" maxlength="32" required aria-describedby="name-hint form-error">
+                <span class="char-count" id="char-count">0/32</span>
+              </div>
+              <p class="field-hint" id="name-hint">This is the name people will see on their phone.</p>
+
+              <details class="option-card" id="icon-option">
+                <summary class="option-summary">
+                  <span class="option-symbol icon-symbol" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="4" stroke="currentColor" stroke-width="1.5"/><circle cx="7.2" cy="7.2" r="1.6" fill="currentColor"/><path d="m4.5 14 4-3.8 2.6 2.2 1.9-1.6 2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="option-heading"><strong>App icon</strong><small>Optional · use your own picture</small></span>
+                  <span class="help-tip" tabindex="0" aria-label="About app icons" data-tip="Choose a square picture. Drag it to position, adjust the zoom, and we will create the Android icon sizes for you.">?</span>
+                  <span class="option-chevron" aria-hidden="true">⌄</span>
+                </summary>
+                <div class="option-content">
+                  <label class="upload-button" for="icon-file"><span class="upload-glyph" aria-hidden="true">＋</span><span id="icon-file-label">Choose an icon picture</span></label>
+                  <input class="visually-hidden" id="icon-file" type="file" accept="image/png,image/jpeg,image/webp">
+                  <p class="field-hint">PNG, JPG or WebP, up to 10 MB. Crop preview is square; sizes for Android launchers are generated automatically.</p>
+                  <div class="icon-error" id="icon-error" role="alert" hidden></div>
+                  <div class="icon-editor" id="icon-editor" hidden>
+                    <div class="icon-crop-shell">
+                      <canvas id="icon-canvas" width="512" height="512" role="img" aria-label="Drag the image to choose the square app icon crop"></canvas>
+                      <span class="crop-guide" aria-hidden="true"></span>
+                    </div>
+                    <div class="zoom-control">
+                      <label for="icon-zoom">Zoom</label>
+                      <input id="icon-zoom" type="range" min="100" max="300" value="100" step="1">
+                      <span id="icon-zoom-value">100%</span>
+                    </div>
+                    <p class="field-hint">Drag the picture to move it. The original stays on this device; only the cropped icon sizes are sent to build your APK.</p>
+                    <button class="text-button remove-icon" id="remove-icon" type="button">Remove picture</button>
+                  </div>
+                </div>
+              </details>
+
+              <details class="option-card" id="notification-option">
+                <summary class="option-summary">
+                  <span class="option-symbol notification-symbol" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M15.3 8.3a5.3 5.3 0 0 0-10.6 0c0 6.2-2.2 6.2-2.2 7.4h15c0-1.2-2.2-1.2-2.2-7.4ZM8 18h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="option-heading"><strong>New post notifications</strong><small>Optional · for Blogger and public feeds</small></span>
+                  <span class="help-tip" tabindex="0" aria-label="About new post notifications" data-tip="The Android app checks a public Atom or RSS feed in the background and notifies about new posts. Android may delay checks to save battery.">?</span>
+                  <span class="option-chevron" aria-hidden="true">⌄</span>
+                </summary>
+                <div class="option-content">
+                  <label class="toggle-row" for="notify-posts">
+                    <input id="notify-posts" type="checkbox">
+                    <span class="toggle-copy"><strong>Notify me when a new post is published</strong><small>Works with public Atom or RSS feeds.</small></span>
+                  </label>
+                  <div class="feed-fields" id="feed-fields" hidden>
+                    <label class="field-label" for="feed-url">Post feed address</label>
+                    <input class="feed-input" id="feed-url" type="url" inputmode="url" placeholder="https://yourblog.blogspot.com/feeds/posts/default?alt=rss" aria-describedby="feed-hint form-error">
+                    <p class="field-hint" id="feed-hint">For Blogger, use the blog’s public posts feed. Private blogs and blogs with feeds turned off cannot send updates.</p>
+                    <button class="text-button blogger-feed-button" id="blogger-feed-button" type="button">Use this website’s Blogger feed</button>
+                    <p class="feed-timing-note">Checks run no more often than every 15 minutes; Android may delay them. People must allow notifications when they first open the app.</p>
+                  </div>
+                </div>
+              </details>
+
+              <div class="form-error" id="form-error" role="alert" hidden></div>
+              <button class="build-button" id="build-button" type="submit">
+                <span class="button-label">Build my Android app</span>
+                <span class="button-arrow" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+              </button>
+              <p class="build-footnote"><span class="tiny-check" aria-hidden="true">✓</span> The build happens online. Nothing to install on your computer.</p>
+              <p class="format-note"><strong>Output: Android APK.</strong> Other installers need their own platform build tools and signing; changing a file extension does not make them valid apps.</p>
+            </form>
+
+            <section class="build-progress" id="build-progress" aria-live="polite" hidden>
+              <div class="progress-orbit" aria-hidden="true"><span></span></div>
+              <div class="progress-copy">
+                <p class="card-kicker" id="progress-kicker">BUILDING YOUR APP</p>
+                <h3 id="progress-title">Getting things ready…</h3>
+                <p id="progress-message">The first build may take a few minutes.</p>
+                <div class="progress-track"><span id="progress-bar"></span></div>
+                <p class="queue-note" id="queue-note">You can leave this tab open while we build.</p>
+              </div>
+            </section>
+
+            <section class="build-result" id="build-result" aria-live="polite" hidden>
+              <div class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.2L19 7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="result-copy">
+                <p class="card-kicker">READY TO GO</p>
+                <h3 id="result-title">Your app is ready</h3>
+                <p id="result-description">Download the APK and install it on an Android phone or tablet.</p>
+              </div>
+              <a class="download-button" id="download-link" href="#" download>
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 13.7v1.8c0 .8.7 1.5 1.5 1.5h9c.8 0 1.5-.7 1.5-1.5v-1.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Download APK
+              </a>
+              <div class="install-steps">
+                <p><span>1</span> Download the APK on your Android device.</p>
+                <p><span>2</span> Open it and follow Android's install prompt.</p>
+              </div>
+              <p class="ios-note"><strong>Using iPhone or iPad?</strong> APKs can’t be installed on iOS. Open your website in Safari, tap Share, then <em>Add to Home Screen</em>.</p>
+              <button class="text-button" id="build-another" type="button">Build another app <span aria-hidden="true">↗</span></button>
+            </section>
+          </div>
+
+          <aside class="preview-card" aria-label="What your app includes">
+            <div class="preview-topline"><span class="mini-spark" aria-hidden="true">✦</span> YOUR APP, AT A GLANCE <span class="preview-dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+            <div class="phone-stage" aria-hidden="true">
+              <div class="phone-glow"></div>
+              <div class="phone-frame">
+                <div class="phone-camera"></div>
+                <div class="phone-screen">
+                  <div class="phone-status"><span>9:41</span><span class="phone-status-icons"><i></i><i></i><i></i></span></div>
+                  <div class="phone-site">
+                    <div class="site-nav"><span class="site-logo"></span><span class="site-menu"><i></i><i></i></span></div>
+                    <div class="site-hero-label"></div>
+                    <div class="site-hero-title"><i></i><i></i></div>
+                    <div class="site-hero-copy"><i></i><i></i><i></i></div>
+                    <div class="site-cta"></div>
+                    <div class="site-art"><span class="art-shape shape-one"></span><span class="art-shape shape-two"></span><span class="art-shape shape-three"></span><span class="art-sun"></span></div>
+                    <div class="site-bottom-lines"><i></i><i></i></div>
+                  </div>
+                  <div class="phone-home-bar"></div>
+                </div>
+              </div>
+              <div class="phone-caption"><span class="caption-dot"></span> Opens in its own app window</div>
+            </div>
+            <div class="feature-list">
+              <div class="feature-item">
+                <span class="feature-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8.3 2.8 2.8 6.2-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <div><strong>Your website, inside</strong><span>Content stays live from your site.</span></div>
+              </div>
+              <div class="feature-item">
+                <span class="feature-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8.3 2.8 2.8 6.2-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <div><strong>App basics included</strong><span>Back button, uploads, and downloads.</span></div>
+              </div>
+              <div class="feature-item">
+                <span class="feature-check" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none"><path d="m3.5 8.3 2.8 2.8 6.2-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <div><strong>Built on our server</strong><span>No build tools on your device.</span></div>
+              </div>
+            </div>
+            <div class="preview-divider"></div>
+            <div class="platform-note">
+              <span class="android-glyph" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M5.4 7.4h9.2v7a1.5 1.5 0 0 1-1.5 1.5h-6a1.5 1.5 0 0 1-1.7-1.5v-7ZM4.2 8.2v4.5M15.8 8.2v4.5M7 5.7l-1-1.5m7 1.5 1-1.5M6.1 7.4a3.9 3.9 0 0 1 7.8 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.9" cy="9.9" r=".6" fill="currentColor"/><circle cx="12.1" cy="9.9" r=".6" fill="currentColor"/></svg></span>
+              <span><strong>APK = Android</strong><br>iPhone and iPad use the website’s Safari home-screen option.</span>
+            </div>
+          </aside>
+        </section>
+
+        <footer class="page-footer">
+          <span>Made for the web you already have.</span>
+          <span class="footer-right"><span class="footer-lock">⌑</span> Your site loads directly from its original address.</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
