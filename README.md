@@ -1,35 +1,42 @@
 # Web2App Builder
 
-A small website with a server-side Android APK build service. Users enter a public HTTPS URL and an app name; the backend builds a signed, installable Android debug APK that opens the website in a WebView. Users do not need Android Studio or Android build tools on their devices.
+Turn a public HTTPS website into an Android APK from a simple web form. Users can add an app name, upload and crop a launcher icon, and optionally turn on new-post notifications from a public RSS or Atom feed. No Android Studio or paid build server is needed.
 
-The form can also accept a PNG, JPG, or WebP launcher picture (up to 10 MB). Users can crop it, drag it into position, and zoom before building. The browser sends only the generated Android icon-size PNGs to the builder; it does not upload the original picture.
+The main page is `index.html` in the project root. Keep it beside `app.js`, `styles.css`, and `favicon.svg` when uploading the project.
 
-New-post alerts are optional. A user can enable them and provide a public Atom or RSS feed; Blogger addresses are suggested automatically for `blogspot.com` sites, and the feed button also prepares a feed URL for custom domains. The generated Android app checks once when first opened and then uses Android WorkManager for periodic checks. Android schedules these checks no more frequently than every 15 minutes and can delay them to save battery. Android 13 and newer also require the user to allow notifications. A private blog or disabled feed cannot provide new-post alerts.
+## Free GitHub Pages setup
 
-The website entry page is `index.html` in the project root. Its CSS, JavaScript, and favicon are alongside it.
+1. Create a **public** GitHub repository and upload all project files with `index.html` at the repository root.
+2. Make sure the repository's **Issues** and **Actions** features are enabled.
+3. In **Settings → Pages**, publish the `main` branch from the repository root.
+4. Wait for GitHub Pages to finish its first deployment, then open the Pages link.
 
-## Run the complete service
+The page detects its repository from the standard `owner.github.io/repository` address, so it works when deployed from a copy or fork. For a custom domain, set `window.WEB2APP_GITHUB_REPOSITORY` to `"owner/repository"` in `index.html` before `app.js` loads.
 
-The included Docker setup installs Java 17, Gradle, and the Android command-line SDK inside the server container. Install Docker on the machine that will host the builder, then run:
+The **Build** button opens a pre-filled public GitHub issue. A free GitHub sign-in is required to submit the request and download the APK. Build issues remain visible publicly: the website address, app name, optional feed address, and any icon package attached to the issue can be seen by anyone. Do not submit private website or feed details. If an icon was selected, attach the downloaded `web2app-icons.txt` file before submitting the issue.
+
+GitHub Actions builds the APK on a standard hosted runner. The free queue allows three requests per GitHub account every 24 hours. The APK download link is posted to the issue and expires after one day. If a build fails, open its Actions run from the issue comment for details.
+
+## What the generated APK does
+
+The APK opens the original website in an Android WebView and supports Android 6.0 and newer. Website forms, downloads, camera, microphone, and location features are supported where the website and Android device permit them. Websites must be public, use HTTPS, and stay online for the app to work.
+
+The APK is signed with Android's debug key. It can be installed and shared for testing, but it is not publisher-signed for Google Play. This builder creates **Android `.apk` files only**. It does not make iPhone, Windows, macOS, Linux, console, or other platform packages; those need different platform tools and signing.
+
+For iPhone and iPad, use Safari's **Share → Add to Home Screen** on the original website.
+
+## Private local builds
+
+To keep build requests private, run the included Docker service on a computer you control. Install Docker, then run:
 
 ```sh
 docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The first image build downloads the Android SDK and takes several minutes. APK builds are then created by the server. Generated APKs are stored in `./data` and automatically removed after six hours.
+Open [http://localhost:3000](http://localhost:3000). The first build downloads Android build tools and can take several minutes. The local server keeps APKs for six hours. Node.js 20+, Java 17, Gradle 8.13, and Android SDK platform/build tools 36.0.0 are needed if running without Docker; start it with `npm start`.
 
-To run without Docker, install Node.js 20+, Java 17, Gradle 8.13, and Android SDK platform 36/build tools 36.0.0. Set `ANDROID_HOME`, then run `npm start`.
+Run the offline request queue checks with:
 
-## Deployment
-
-Deploy the Docker image to a server with persistent storage and expose port 3000 through an HTTPS reverse proxy. Keep `/data` on persistent storage. The service limits each source IP to 8 builds per hour, runs one build at a time by default, and expires downloads after six hours. Set `TRUST_PROXY=1` only when a reverse proxy overwrites `X-Forwarded-For` with the real client address. For a public, high-traffic service, add authentication or a managed queue before increasing build capacity.
-
-### GitHub Pages and free APK builds
-
-GitHub Pages hosts the interface for free, but it cannot run the Node.js and Android build server. The published page therefore cannot build APKs until a separate backend is connected. The included local Docker server can build APKs without a paid hosting plan, but it runs only while the computer hosting it is online. A free public GitHub Actions queue is another option; it requires users to sign in to GitHub and submit build details in a public issue. Do not put private website addresses or feed details in a public build request.
-
-The generated APK supports Android 6.0 and newer and is signed with Android's debug key. It can be installed directly on Android devices and shared for testing, but it is not signed with a publisher-owned release key for Play Store distribution. A generated app loads its source website over the internet, so the original site must remain available and permit the needed browser features. This builder accepts public HTTPS website URLs.
-
-APK files install on Android only. On an iPhone or iPad, users can open the original website in Safari and choose **Share → Add to Home Screen** instead.
-
-This project generates Android `.apk` files only. It does not generate the other formats listed in the product request: those formats have separate operating-system build tools, packaging rules, code-signing requirements, and in some cases proprietary or store-only distribution steps. Changing an APK's extension does not create a working app for another platform.
+```sh
+npm test
+```

@@ -8,6 +8,8 @@ const serviceNotice = document.querySelector("#service-notice");
 const serviceNoticeTitle = document.querySelector("#service-notice-title");
 const serviceNoticeMessage = document.querySelector("#service-notice-message");
 const localBuilderLink = document.querySelector("#local-builder-link");
+const publicQueueConsentRow = document.querySelector("#public-queue-consent-row");
+const publicQueueConsentInput = document.querySelector("#public-queue-consent");
 const progressPanel = document.querySelector("#build-progress");
 const progressTitle = document.querySelector("#progress-title");
 const progressMessage = document.querySelector("#progress-message");
@@ -43,6 +45,24 @@ let dragPoint = null;
 const configurableInputs = [websiteInput, appNameInput, notifyPostsInput, feedUrlInput, iconFileInput, iconZoomInput, removeIconButton, bloggerFeedButton];
 const iconDensities = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };
 const API_BASE = typeof window.WEB2APP_API_BASE === "string" ? window.WEB2APP_API_BASE.replace(/\/$/, "") : "";
+const configuredRepository = typeof window.WEB2APP_GITHUB_REPOSITORY === "string"
+  ? window.WEB2APP_GITHUB_REPOSITORY.trim()
+  : "";
+const hasConfiguredRepository = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(configuredRepository);
+const isGitHubPages = window.location.hostname.endsWith(".github.io") || hasConfiguredRepository;
+const GITHUB_REPOSITORY = detectGitHubRepository();
+
+function detectGitHubRepository() {
+  if (hasConfiguredRepository) return configuredRepository;
+  const host = window.location.hostname.toLowerCase();
+  if (host.endsWith(".github.io")) {
+    const owner = host.slice(0, -".github.io".length);
+    const project = window.location.pathname.split("/").filter(Boolean)[0];
+    const repository = project || `${owner}.github.io`;
+    return `${owner}/${repository}`;
+  }
+  return "aryabanerjeetick/web2app-builder";
+}
 
 function apiUrl(path) {
   return `${API_BASE}${path}`;
@@ -54,8 +74,20 @@ async function checkBuilderService() {
     serviceNoticeTitle.textContent = "Open the builder server to create an APK";
     serviceNoticeMessage.textContent = "This local file preview is styled, but APK builds need the server. Start it with Docker Compose, then use the link below.";
     localBuilderLink.hidden = false;
+    publicQueueConsentRow.hidden = true;
     buildButton.disabled = true;
     buildButton.querySelector(".button-label").textContent = "Open the builder server to build";
+    return;
+  }
+
+  if (isGitHubPages) {
+    serviceNotice.hidden = false;
+    serviceNoticeTitle.textContent = "Free APK builds use GitHub's build queue";
+    serviceNoticeMessage.textContent = "Click Build to open a public GitHub request. Sign in and submit it; if you chose an icon, attach the downloaded icon package first. The APK link appears on that issue when ready and expires after one day. The free queue allows three requests per account every 24 hours.";
+    localBuilderLink.hidden = true;
+    publicQueueConsentRow.hidden = false;
+    buildButton.querySelector(".button-label").textContent = "Continue to GitHub to build";
+    buildButton.disabled = !publicQueueConsentInput.checked;
     return;
   }
 
@@ -71,17 +103,14 @@ async function checkBuilderService() {
     if (!response.ok) throw new Error("The builder server did not respond.");
     serviceNotice.hidden = true;
     localBuilderLink.hidden = true;
+    publicQueueConsentRow.hidden = true;
     buildButton.disabled = false;
   } catch {
     serviceNotice.hidden = false;
     localBuilderLink.hidden = true;
-    if (window.location.hostname.endsWith(".github.io")) {
-      serviceNoticeTitle.textContent = "Online APK building is not connected yet";
-      serviceNoticeMessage.textContent = "This free GitHub Pages site can show the builder, but APK creation needs a separate build service. No paid service is running. The free online option requires a GitHub sign-in and public build requests.";
-    } else {
-      serviceNoticeTitle.textContent = "The APK builder server is offline";
-      serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
-    }
+    publicQueueConsentRow.hidden = true;
+    serviceNoticeTitle.textContent = "The APK builder server is offline";
+    serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
     buildButton.disabled = true;
   }
 }
@@ -128,6 +157,10 @@ function updateFeedVisibility() {
 }
 
 notifyPostsInput.addEventListener("change", updateFeedVisibility);
+
+publicQueueConsentInput.addEventListener("change", () => {
+  if (isGitHubPages) buildButton.disabled = !publicQueueConsentInput.checked;
+});
 
 bloggerFeedButton.addEventListener("click", () => {
   const feedUrl = bloggerFeedUrl(websiteInput.value.trim());
@@ -293,6 +326,52 @@ function makeIconImageSets() {
   return { launcher, foreground };
 }
 
+function downloadPublicIconPackage() {
+  const iconFiles = makeIconImageSets();
+  if (!iconFiles) return;
+  const blob = new Blob([JSON.stringify(iconFiles)], { type: "text/plain" });
+  if (blob.size > 2_500_000) {
+    throw new Error("This cropped icon package is too large for the free GitHub queue. Try a smaller picture.");
+  }
+  const objectUrl = URL.createObjectURL(blob);
+  const download = document.createElement("a");
+  download.href = objectUrl;
+  download.download = "web2app-icons.txt";
+  download.hidden = true;
+  document.body.append(download);
+  download.click();
+  download.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+}
+
+function openPublicGitHubBuildRequest() {
+  const appName = appNameInput.value.trim();
+  const hasIcon = Boolean(selectedIcon);
+  const issueBody = [
+    "<!-- WEB2APP_BUILD_REQUEST -->",
+    "Free Web2App APK build request",
+    "",
+    `Website URL: ${websiteInput.value}`,
+    `App name: ${appName}`,
+    `New post notifications: ${notifyPostsInput.checked ? "yes" : "no"}`,
+    `Feed URL: ${notifyPostsInput.checked ? feedUrlInput.value : "none"}`,
+    `Icon package: ${hasIcon ? "attach web2app-icons.txt to this issue before submitting" : "none"}`,
+    "",
+    "This request is public. Keep the issue open; the APK download link will be posted here when the build finishes.",
+  ].join("\n");
+  const issueUrl = new URL(`https://github.com/${GITHUB_REPOSITORY}/issues/new`);
+  issueUrl.searchParams.set("title", `[Web2App APK] ${appName}`);
+  issueUrl.searchParams.set("body", issueBody);
+
+  if (hasIcon) {
+    downloadPublicIconPackage();
+    serviceNoticeMessage.textContent = "The cropped icon package is downloading. Attach web2app-icons.txt to the public GitHub issue before submitting it.";
+    window.setTimeout(() => window.location.assign(issueUrl.toString()), 700);
+  } else {
+    window.location.assign(issueUrl.toString());
+  }
+}
+
 websiteInput.addEventListener("input", () => {
   const nextSuggestion = suggestedAppName(websiteInput.value.trim());
   if (!appNameInput.value.trim() || appNameInput.value === suggestedName) {
@@ -318,9 +397,13 @@ function setFormMessage(message) {
 }
 
 function setBusy(isBusy) {
-  buildButton.disabled = isBusy;
+  buildButton.disabled = isBusy || (isGitHubPages && !publicQueueConsentInput.checked);
   for (const input of configurableInputs) input.disabled = isBusy;
-  buildButton.querySelector(".button-label").textContent = isBusy ? "Building your app…" : "Build my Android app";
+  buildButton.querySelector(".button-label").textContent = isBusy
+    ? "Building your app…"
+    : isGitHubPages
+      ? "Continue to GitHub to build"
+      : "Build my Android app";
   form.hidden = isBusy;
 }
 
@@ -424,6 +507,20 @@ form.addEventListener("submit", async (event) => {
       return;
     }
     feedUrlInput.value = normalizeWebsite(feedUrlInput.value);
+  }
+
+  if (isGitHubPages) {
+    if (!publicQueueConsentInput.checked) {
+      setFormMessage("Confirm that your build details will be public on GitHub before continuing.");
+      publicQueueConsentInput.focus();
+      return;
+    }
+    try {
+      openPublicGitHubBuildRequest();
+    } catch (error) {
+      setFormMessage(error.message || "The public GitHub request could not be prepared. Please try again.");
+    }
+    return;
   }
 
   setBusy(true);
