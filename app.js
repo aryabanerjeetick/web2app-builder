@@ -52,7 +52,7 @@ async function checkBuilderService() {
   if (window.location.protocol === "file:") {
     serviceNotice.hidden = false;
     serviceNoticeTitle.textContent = "Open the builder server to create an APK";
-    serviceNoticeMessage.textContent = "This local file preview is styled, but APK builds need the server. Start it with Docker Compose, then use the link below.";
+    serviceNoticeMessage.textContent = "Start the local builder with npm run local, then open it at http://localhost:3000.";
     localBuilderLink.hidden = false;
     buildButton.disabled = true;
     buildButton.querySelector(".button-label").textContent = "Open the builder server to build";
@@ -74,14 +74,9 @@ async function checkBuilderService() {
     buildButton.disabled = false;
   } catch {
     serviceNotice.hidden = false;
-    localBuilderLink.hidden = true;
-    if (window.location.hostname.endsWith(".github.io")) {
-      serviceNoticeTitle.textContent = "Online APK building is not connected yet";
-      serviceNoticeMessage.textContent = "This free GitHub Pages site can show the builder, but APK creation needs a separate build service. No paid service is running. The free online option requires a GitHub sign-in and public build requests.";
-    } else {
-      serviceNoticeTitle.textContent = "The APK builder server is offline";
-      serviceNoticeMessage.textContent = "The page is ready, but APK builds are unavailable until the server is running.";
-    }
+    localBuilderLink.hidden = false;
+    serviceNoticeTitle.textContent = "Start the local builder on your computer";
+    serviceNoticeMessage.textContent = "Run npm run local in the project folder, then open http://localhost:3000. Keep the server window open while building.";
     buildButton.disabled = true;
   }
 }

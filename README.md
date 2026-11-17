@@ -1,35 +1,32 @@
 # Web2App Builder
 
-A small website with a server-side Android APK build service. Users enter a public HTTPS URL and an app name; the backend builds a signed, installable Android debug APK that opens the website in a WebView. Users do not need Android Studio or Android build tools on their devices.
+Turn a public HTTPS website into an Android APK from a simple local web page. Add an app name, optionally crop a launcher icon, and optionally enable new-post notifications from a public RSS or Atom feed.
 
-The form can also accept a PNG, JPG, or WebP launcher picture (up to 10 MB). Users can crop it, drag it into position, and zoom before building. The browser sends only the generated Android icon-size PNGs to the builder; it does not upload the original picture.
+The page is `index.html` in the project root. Keep it alongside `app.js`, `styles.css`, `favicon.svg`, `server.js`, and `android-template/`.
 
-New-post alerts are optional. A user can enable them and provide a public Atom or RSS feed; Blogger addresses are suggested automatically for `blogspot.com` sites, and the feed button also prepares a feed URL for custom domains. The generated Android app checks once when first opened and then uses Android WorkManager for periodic checks. Android schedules these checks no more frequently than every 15 minutes and can delay them to save battery. Android 13 and newer also require the user to allow notifications. A private blog or disabled feed cannot provide new-post alerts.
+## Start it on Windows
 
-The website entry page is `index.html` in the project root. Its CSS, JavaScript, and favicon are alongside it.
+1. Install [Node.js 20 or newer](https://nodejs.org/) and a [Java 17 JDK](https://learn.microsoft.com/en-us/java/openjdk/download).
+2. Open PowerShell in this project folder and run:
 
-## Run the complete service
+   ```powershell
+   npm run local
+   ```
 
-The included Docker setup installs Java 17, Gradle, and the Android command-line SDK inside the server container. Install Docker on the machine that will host the builder, then run:
+3. On the first run, the setup downloads Gradle and Android command-line build tools into the ignored `.local-tools/` folder. Review and accept the Android SDK licenses when prompted. It then installs the required Android SDK platform and starts the builder.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser. Keep the PowerShell window open while building. Press **Ctrl+C** in that window to stop the local server.
 
-```sh
-docker compose up --build
-```
+The first setup and first APK build can take several minutes. Later runs reuse the downloaded tools. The Gradle archive is checked against Gradle's published SHA-256 checksum. No Android Studio, Docker, paid hosting, or GitHub sign-in is needed.
 
-Open [http://localhost:3000](http://localhost:3000). The first image build downloads the Android SDK and takes several minutes. APK builds are then created by the server. Generated APKs are stored in `./data` and automatically removed after six hours.
+If you already installed Gradle 8.13 and Android SDK platform/build tools 36.0.0, set `ANDROID_HOME` and start the server with `npm start` instead.
 
-To run without Docker, install Node.js 20+, Java 17, Gradle 8.13, and Android SDK platform 36/build tools 36.0.0. Set `ANDROID_HOME`, then run `npm start`.
+## Features and limits
 
-## Deployment
+- Builds Android `.apk` files for public HTTPS websites. The generated app needs an internet connection and the original website must remain online.
+- Accepts PNG, JPG, or WebP app icons up to 10 MB. Crop, position, and zoom the picture in the browser; the original picture stays on your device.
+- Can check a public Atom or RSS feed for new posts. Blogger feed addresses are suggested automatically. Android may delay background checks, and people must allow notifications on Android 13 and newer.
+- Runs the web server and APK builds on your own computer. Keep the computer on and the server window open until the build and download finish.
+- The APK is debug-signed for testing and direct installation. It is not publisher-signed for Google Play.
+- This project creates Android APKs only. Other operating systems require their own packaging tools and signing; changing the extension does not make an APK work on them.
 
-Deploy the Docker image to a server with persistent storage and expose port 3000 through an HTTPS reverse proxy. Keep `/data` on persistent storage. The service limits each source IP to 8 builds per hour, runs one build at a time by default, and expires downloads after six hours. Set `TRUST_PROXY=1` only when a reverse proxy overwrites `X-Forwarded-For` with the real client address. For a public, high-traffic service, add authentication or a managed queue before increasing build capacity.
-
-### GitHub Pages and free APK builds
-
-GitHub Pages hosts the interface for free, but it cannot run the Node.js and Android build server. The published page therefore cannot build APKs until a separate backend is connected. The included local Docker server can build APKs without a paid hosting plan, but it runs only while the computer hosting it is online. A free public GitHub Actions queue is another option; it requires users to sign in to GitHub and submit build details in a public issue. Do not put private website addresses or feed details in a public build request.
-
-The generated APK supports Android 6.0 and newer and is signed with Android's debug key. It can be installed directly on Android devices and shared for testing, but it is not signed with a publisher-owned release key for Play Store distribution. A generated app loads its source website over the internet, so the original site must remain available and permit the needed browser features. This builder accepts public HTTPS website URLs.
-
-APK files install on Android only. On an iPhone or iPad, users can open the original website in Safari and choose **Share → Add to Home Screen** instead.
-
-This project generates Android `.apk` files only. It does not generate the other formats listed in the product request: those formats have separate operating-system build tools, packaging rules, code-signing requirements, and in some cases proprietary or store-only distribution steps. Changing an APK's extension does not create a working app for another platform.
+For iPhone or iPad, open the original website in Safari and choose **Share → Add to Home Screen**.
