@@ -4,8 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "test": "node --test .github/tests/github-issue-build.test.mjs"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=20"
